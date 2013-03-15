@@ -1,0 +1,118 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <title>Canvas Drag and Drop Test</title>
+</head>
+<body>
+
+<div>
+    <canvas id="canvas" width="400" height="300">
+        This text is displayed if your browser does not support HTML5 Canvas.
+    </canvas>
+</div>
+
+<script type="text/javascript">
+    var canvas = document.getElementById("canvas");
+    var ctx = canvas.getContext("2d");
+    var curid = 0;
+    var RECTS = 10;
+
+    function init() {
+        return setInterval(draw, 10);
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, rect[0].WIDTH, rect[0].HEIGHT);
+        for (i = 0; i < RECTS; i++) {
+            ctx.beginPath();
+            ctx.rect(rect[i].x, rect[i].y, rect[i].dx, rect[i].dy);
+            ctx.closePath();
+            ctx.fill();
+        }
+    }
+
+    function Box(ctx_, id_) {
+        this.ctx = ctx_;
+        this.x = 75;
+        this.y = 50;
+        this.dx = 30;
+        this.dy = 30;
+        this.WIDTH = 400;
+        this.HEIGHT = 300;
+        this.id = id_;
+        this.dragok = false;
+    }
+
+    Box.prototype.create = function (x, y) {
+        this.x = x;
+        this.y = y;
+        this.ctx.beginPath();
+        this.ctx.rect(x, y, this.dx, this.dy);
+        this.ctx.closePath();
+        this.ctx.fill();
+    }
+    Box.prototype.cleare = function () {
+        this.ctx.clearRect(this.x, this.y, this.dx, this.dy);
+    }
+    Box.prototype.getX = function () {
+        return (this.x + canvas.offsetLeft);
+    }
+    Box.prototype.getY = function () {
+        return (this.y + canvas.offsetTop);
+    }
+    Box.prototype.isFocus = function (mX, mY) {
+        if (mX > this.getX() && mY > this.getY() && mX < (this.getX() + this.dx) && mY < (this.getY() + this.dy))
+            return true;
+        else
+            return false;
+    }
+
+    function getRandomArbitary(min, max) {
+        return Math.random() * (max - min) + min;
+    }
+
+    function myMove(e) {
+        if (rect[curid].dragok) {
+
+            rect[curid].x = e.pageX - canvas.offsetLeft - rect[curid].dx / 2;
+            rect[curid].y = e.pageY - canvas.offsetTop - rect[curid].dy / 2;
+        }
+    }
+
+    function myUp() {
+        rect[curid].dragok = false;
+        curid = 0;
+        canvas.onmousemove = null;
+    }
+
+    function Move(mX, mY) {
+
+        for (p in rect) {
+            if (rect[p].isFocus(mX, mY)) {
+                //alert("p="+p+", rect[p].id="+rect[p].id); //rect[p] объект с которым продолжим работат (Тот на который нажали мышкой);
+                //alert("x="+rect[p].x+", mX="+mX);
+                //rect[p].x = mX-canvas.offsetLeft;
+                //rect[p].y = mY-canvas.offsetTop;
+                rect[p].dragok = true;
+                curid = p;
+                canvas.onmousemove = myMove;
+            }
+        }
+    }
+
+    function Down(event) {
+        Move(event.pageX, event.pageY);
+    }
+    var rect = new Array(RECTS);
+
+    for (var i = 0; i < RECTS; i++) {
+        rect[i] = new Box(ctx, i);
+        rect[i].create(getRandomArbitary(0, 300), getRandomArbitary(0, 260));
+    }
+    init();
+    canvas.onmouseup = myUp;
+    canvas.onmousedown = Down;
+</script>
+</body>
+</html>
